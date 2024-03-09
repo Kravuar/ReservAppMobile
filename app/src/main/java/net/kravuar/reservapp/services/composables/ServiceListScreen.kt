@@ -1,15 +1,22 @@
-package net.kravuar.reservapp.business.composables
+package net.kravuar.reservapp.services.composables
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,28 +25,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import net.kravuar.reservapp.business.domain.Business
-import net.kravuar.reservapp.business.services.BusinessRetrievalService
+import net.kravuar.reservapp.services.domain.Service
+import net.kravuar.reservapp.services.services.ServiceRetrievalService
 import net.kravuar.reservapp.ui.components.RefreshButton
 
 @Composable
-fun BusinessListScreen(
-    businessRetrievalService: BusinessRetrievalService,
-    onBusinessSelected: (Long) -> Unit
+fun ServiceListScreen(
+    serviceRetrievalService: ServiceRetrievalService,
+    onServiceSelected: (Long) -> Unit
 ) {
-    var businesses by remember { mutableStateOf<List<Business>>(emptyList()) }
+    var services by remember { mutableStateOf<List<Service>>(emptyList()) }
     var errorState: String? by remember { mutableStateOf(null) }
     var isRefreshing by remember { mutableStateOf(false) }
 
-    val fetchBusinesses: suspend () -> Unit = {
+    val fetchServicees: suspend () -> Unit = {
         try {
             isRefreshing = true
-            businesses = businessRetrievalService.getActiveBusinesses()
+            services = serviceRetrievalService.getActiveServices()
             errorState = null
         } catch (e: Exception) {
-            Log.e("BUSINESS", "List Fetch Error", e)
+            Log.e("SERVICES", "List Fetch Error", e)
             errorState = "business.list.fetch-failed"
         } finally {
             isRefreshing = false
@@ -47,7 +56,7 @@ fun BusinessListScreen(
     }
 
     LaunchedEffect(key1 = Unit) {
-        fetchBusinesses()
+        fetchServicees()
     }
 
     if (errorState != null) {
@@ -66,7 +75,7 @@ fun BusinessListScreen(
     } else {
         Scaffold(
             floatingActionButton = {
-                RefreshButton(onClick = fetchBusinesses, isRefreshing = isRefreshing)
+                RefreshButton(onClick = fetchServicees, isRefreshing = isRefreshing)
             }
         ) { padding ->
             LazyColumn(
@@ -74,9 +83,9 @@ fun BusinessListScreen(
                     .padding(padding)
                     .padding(16.dp)
             ) {
-                items(businesses) { business ->
-                    BusinessListItem(business = business) {
-                        onBusinessSelected(business.id)
+                items(services) { service ->
+                    ServiceListItem(service = service) {
+                        onServiceSelected(service.id)
                     }
                 }
             }
@@ -85,7 +94,7 @@ fun BusinessListScreen(
 }
 
 @Composable
-fun BusinessListItem(business: Business, onClick: () -> Unit) {
+fun ServiceListItem(service: Service, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,9 +102,24 @@ fun BusinessListItem(business: Business, onClick: () -> Unit) {
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Text(
-            text = business.name,
-            modifier = Modifier.padding(16.dp)
-        )
+        Row(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = service.name,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(60.dp))
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.secondary)
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = "Owner: ${service.business.ownerSub}",
+                    color = MaterialTheme.colorScheme.onSecondary
+                )
+            }
+        }
     }
 }

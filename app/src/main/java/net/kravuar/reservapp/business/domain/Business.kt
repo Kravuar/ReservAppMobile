@@ -5,5 +5,5 @@ data class Business(
     val ownerSub: String,
     val name: String,
     val active: Boolean,
-    val description: String
+    val description: String?
 )

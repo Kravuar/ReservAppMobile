@@ -1,11 +1,11 @@
 package net.kravuar.reservapp.business.services.rest
 
 import net.kravuar.reservapp.business.domain.Business
-import net.kravuar.reservapp.business.services.BusinessService
+import net.kravuar.reservapp.business.services.BusinessRetrievalService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class RetrofitBusinessClient : BusinessService {
+class RetrofitBusinessRetrievalClient : BusinessRetrievalService {
     private val client = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
@@ -25,6 +25,6 @@ class RetrofitBusinessClient : BusinessService {
     }
 
     companion object {
-        private const val BASE_URL = "http://localhost:8081/business/api-v1/"
+        private const val BASE_URL = "http://localhost:8080/business/api-v1/"
     }
 }

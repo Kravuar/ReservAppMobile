@@ -1,6 +1,21 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+}
+
+val oktaPropertiesFile = rootProject.file("okta.properties")
+val oktaProperties = Properties()
+oktaProperties.load(FileInputStream(oktaPropertiesFile))
+
+fun parseScheme(uri: String): String {
+    val index = uri.indexOf(":/")
+    if (index == -1) {
+        throw IllegalStateException("Scheme is not in a valid format.")
+    }
+    return uri.substring(0, index)
 }
 
 android {
@@ -8,8 +23,13 @@ android {
     compileSdk = 34
 
     defaultConfig {
+        buildConfigField("String", "DISCOVERY_URL", oktaProperties.getProperty("discoveryUrl"))
+        buildConfigField("String", "CLIENT_ID", oktaProperties.getProperty("clientId"))
+        buildConfigField("String", "SIGN_IN_REDIRECT_URI", oktaProperties.getProperty("signInRedirectUri"))
+        buildConfigField("String", "SIGN_OUT_REDIRECT_URI", oktaProperties.getProperty("signOutRedirectUri"))
+
         applicationId = "net.kravuar.reservapp"
-        minSdk = 21
+        minSdk = 25
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -18,6 +38,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        manifestPlaceholders["webAuthenticationRedirectScheme"] = oktaProperties.getProperty("signInRedirectUri")
     }
 
     buildTypes {
@@ -38,6 +59,8 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -58,8 +81,9 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation("androidx.compose.material3:material3-android:1.2.0-rc01")
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -68,6 +92,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.5.0")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    implementation(platform("com.okta.kotlin:bom:1.2.1"))
+
+    implementation("com.okta.kotlin:auth-foundation-bootstrap")
+    implementation("com.okta.kotlin:web-authentication-ui")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
+    implementation("androidx.activity:activity-ktx:1.5.1")
 }

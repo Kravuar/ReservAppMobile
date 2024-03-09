@@ -5,7 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 
 interface BusinessTemplate {
-    @GET("retrieval/byId/{businessId}")
+    @GET("retrieval/by-id/{businessId}")
     suspend fun getBusinessById(@Path("businessId") businessId: Long): Business
 
     @GET("retrieval/byOwner/{ownerSub}")
