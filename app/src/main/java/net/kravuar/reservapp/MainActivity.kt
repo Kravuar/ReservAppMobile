@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,7 +60,6 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val startDestinationModuleIndex = 0
     val navController = rememberNavController()
-    Log.e("EEE", navController.toString())
 
     val modules = listOf(
         Pair(
@@ -101,7 +101,7 @@ fun TopAppBarContent(
     startDestinationModuleIndex: Int
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var currentModule by remember { mutableStateOf(startDestinationModuleIndex) }
+    var currentModule by remember { mutableIntStateOf(startDestinationModuleIndex) }
 
     Column(
         modifier = Modifier

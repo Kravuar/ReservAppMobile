@@ -6,7 +6,7 @@ import net.kravuar.reservapp.schedule.services.ScheduleRetrievalService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.time.LocalDate
-import java.util.SortedMap
+import java.util.NavigableMap
 
 class RetrofitScheduleRetrievalClient : ScheduleRetrievalService {
     private val client = Retrofit.Builder()
@@ -15,10 +15,20 @@ class RetrofitScheduleRetrievalClient : ScheduleRetrievalService {
         .build()
         .create(ScheduleTemplate::class.java)
 
-    override suspend fun getScheduleByService(serviceId: Long, from: LocalDate, to: LocalDate): Map<ScheduleStaff, SortedMap<LocalDate, Set<ReservationSlot>>> {
+    override suspend fun getScheduleByService(
+        serviceId: Long,
+        from: LocalDate,
+        to: LocalDate
+    ): Map<ScheduleStaff, NavigableMap<LocalDate, Set<ReservationSlot>>> {
         return client.getScheduleByService(serviceId, from, to)
     }
-    override suspend fun getScheduleByServiceAndStaff(serviceId: Long, staffId: Long, from: LocalDate, to: LocalDate): SortedMap<LocalDate, Set<ReservationSlot>> {
+
+    override suspend fun getScheduleByServiceAndStaff(
+        serviceId: Long,
+        staffId: Long,
+        from: LocalDate,
+        to: LocalDate
+    ): NavigableMap<LocalDate, Set<ReservationSlot>> {
         return client.getScheduleByServiceAndStaff(serviceId, staffId, from, to)
     }
 

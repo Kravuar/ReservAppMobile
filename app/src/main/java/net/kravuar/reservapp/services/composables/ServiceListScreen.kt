@@ -44,7 +44,6 @@ fun ServiceListScreen(
             services = serviceRetrievalService.getActiveServices()
             errorState = null
         } catch (e: Exception) {
-            Log.e("SERVICES", "List Fetch Error", e)
             errorState = "business.list.fetch-failed"
         } finally {
             isRefreshing = false

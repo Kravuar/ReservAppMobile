@@ -39,7 +39,6 @@ fun BusinessListScreen(
             businesses = businessRetrievalService.getActiveBusinesses()
             errorState = null
         } catch (e: Exception) {
-            Log.e("BUSINESS", "List Fetch Error", e)
             errorState = "business.list.fetch-failed"
         } finally {
             isRefreshing = false
