@@ -29,7 +29,7 @@ android {
         buildConfigField("String", "SIGN_OUT_REDIRECT_URI", oktaProperties.getProperty("signOutRedirectUri"))
 
         applicationId = "net.kravuar.reservapp"
-        minSdk = 25
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

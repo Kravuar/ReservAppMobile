@@ -8,16 +8,16 @@ import androidx.navigation.navArgument
 import net.kravuar.reservapp.business.composables.BusinessDetailScreen
 import net.kravuar.reservapp.business.composables.BusinessListScreen
 import net.kravuar.reservapp.business.services.BusinessRetrievalService
-import net.kravuar.reservapp.business.services.rest.RetrofitBusinessRetrievalClient
 import net.kravuar.reservapp.services.services.ServiceRetrievalService
 
 fun NavGraphBuilder.businessModule(
     navController: NavHostController,
-    serviceRetrievalService: ServiceRetrievalService
+    businessRetrievalService: BusinessRetrievalService,
+    serviceRetrievalService: ServiceRetrievalService,
 ) {
     composable(BusinessModuleConstants.LIST_PAGE) {
         BusinessListScreen(
-            businessRetrievalService = BusinessModuleConstants.RETRIEVAL_SERVICE,
+            businessRetrievalService = businessRetrievalService,
             onBusinessSelected = { businessId ->
                 navController.navigate("businessDetail/$businessId")
             })
@@ -29,7 +29,7 @@ fun NavGraphBuilder.businessModule(
         val businessId = backStackEntry.arguments?.getLong("businessId") ?: -1
         BusinessDetailScreen(
             businessId = businessId,
-            businessRetrievalService = BusinessModuleConstants.RETRIEVAL_SERVICE,
+            businessRetrievalService = businessRetrievalService,
             serviceRetrievalService = serviceRetrievalService,
             onBusinessServiceSelected = { serviceId ->
                 navController.navigate("serviceDetail/$serviceId")
@@ -38,7 +38,6 @@ fun NavGraphBuilder.businessModule(
 }
 
 object BusinessModuleConstants {
-    val RETRIEVAL_SERVICE: BusinessRetrievalService = RetrofitBusinessRetrievalClient()
     const val LIST_PAGE: String = "businessList"
     const val DETAIL_PAGE: String = "businessDetail/{businessId}"
     const val START_DESTINATION: String = LIST_PAGE

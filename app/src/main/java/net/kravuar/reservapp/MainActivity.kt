@@ -34,21 +34,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.okta.authfoundation.client.OidcClient
 import net.kravuar.reservapp.business.BusinessModuleConstants
 import net.kravuar.reservapp.business.businessModule
 import net.kravuar.reservapp.services.ServicesModuleConstants
 import net.kravuar.reservapp.services.servicesModule
 import net.kravuar.reservapp.ui.theme.ReservAppMobileTheme
-
-class MainViewModel : ViewModel() {
-    val navController = mutableStateOf<NavController?>(null)
-    val oktaClient = mutableStateOf<OidcClient?>(null)
-}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,8 +78,18 @@ fun MyApp() {
             navController = navController,
             startDestination = modules[startDestinationModuleIndex].second
         ) {
-            businessModule(navController, ServicesModuleConstants.RETRIEVAL_SERVICE)
-            servicesModule(navController)
+            businessModule(
+                navController,
+                Services.BUSINESS_RETRIEVAL_SERVICE,
+                Services.SERVICE_RETRIEVAL_SERVICE
+            )
+            servicesModule(
+                navController,
+                Services.SERVICE_RETRIEVAL_SERVICE,
+                Services.BUSINESS_RETRIEVAL_SERVICE,
+                Services.SCHEDULE_RETRIEVAL_SERVICE,
+                Services.STAFF_RETRIEVAL_SERVICE
+            )
         }
     }
 }

@@ -1,13 +1,19 @@
 package net.kravuar.reservapp.services.composables
 
+import android.app.DatePickerDialog
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.rounded.AccountBox
 import androidx.compose.material3.AlertDialog
@@ -28,19 +34,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import net.kravuar.reservapp.business.domain.Business
 import net.kravuar.reservapp.business.services.BusinessRetrievalService
+import net.kravuar.reservapp.schedule.composables.ScheduleWeeklyList
+import net.kravuar.reservapp.schedule.services.ScheduleRetrievalService
 import net.kravuar.reservapp.services.domain.Service
 import net.kravuar.reservapp.services.services.ServiceRetrievalService
+import net.kravuar.reservapp.staff.services.StaffRetrievalService
 import net.kravuar.reservapp.ui.components.RefreshButton
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ServiceDetailScreen(
     serviceId: Long,
     serviceRetrievalService: ServiceRetrievalService,
     businessRetrievalService: BusinessRetrievalService,
-    onServiceBusinessSelected: (Long) -> Unit
+    onServiceBusinessSelected: (Long) -> Unit,
+    onReserve: () -> Unit,
+    scheduleRetrievalService: ScheduleRetrievalService,
+    staffRetrievalService: StaffRetrievalService
 ) {
     val serviceState = remember { mutableStateOf<Service?>(null) }
     val businessState = remember { mutableStateOf<Business?>(null) }
@@ -85,8 +100,7 @@ fun ServiceDetailScreen(
         )
     else {
         val currentService = serviceState.value
-        val currentBusiness = businessState.value
-        if (currentService != null && currentBusiness != null) {
+        if (currentService != null) {
             Scaffold(
                 floatingActionButton = {
                     RefreshButton(onClick = fetchService, isRefreshing = isRefreshing)
@@ -115,24 +129,32 @@ fun ServiceDetailScreen(
 
                                 Spacer(modifier = Modifier.weight(0.2f))
 
+                                val currentBusiness = businessState.value
                                 Column(
                                     modifier = Modifier.weight(0.3f),
                                     horizontalAlignment = Alignment.End
                                 ) {
-                                    Text(
-                                        text = currentBusiness.name,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
-                                    IconButton(
-                                        onClick = { onServiceBusinessSelected(currentBusiness.id) },
-                                        modifier = Modifier.size(48.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.AccountBox,
-                                            contentDescription = "To Business"
+                                    if (currentBusiness != null) {
+                                        Text(
+                                            text = currentBusiness.name,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.secondary
                                         )
-                                    }
+                                        IconButton(
+                                            onClick = { onServiceBusinessSelected(currentBusiness.id) },
+                                            modifier = Modifier.size(48.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.AccountBox,
+                                                contentDescription = "To Business"
+                                            )
+                                        }
+                                    } else
+                                        Icon(
+                                            imageVector = Icons.Filled.Info,
+                                            contentDescription = "No Business Info",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
                                 }
                             }
                             Row(
@@ -154,6 +176,22 @@ fun ServiceDetailScreen(
                                     modifier = Modifier.padding(8.dp),
                                 )
                             }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                            ) {
+                                ScheduleList(
+                                    serviceId,
+                                    onReserve,
+                                    scheduleRetrievalService,
+                                    staffRetrievalService
+                                )
+                            }
                         }
                     }
                 }
@@ -161,3 +199,83 @@ fun ServiceDetailScreen(
         }
     }
 }
+
+@Composable
+fun ScheduleList(
+    serviceId: Long,
+    onReserve: () -> Unit,
+    scheduleRetrievalService: ScheduleRetrievalService,
+    staffRetrievalService: StaffRetrievalService
+) {
+    var dateState by remember { mutableStateOf<LocalDate>(LocalDate.now()) }
+
+    Column (
+    ) {
+        DatePicker(initialDate = dateState) {
+            dateState = it
+        }
+        ScheduleWeeklyList(
+            date = dateState,
+            serviceId = serviceId,
+            onReserve = onReserve,
+            scheduleRetrievalService = scheduleRetrievalService,
+            staffRetrievalService = staffRetrievalService
+        )
+    }
+}
+
+@Composable
+fun DatePicker(
+    initialDate: LocalDate?,
+    onDateChanged: (LocalDate) -> Unit
+) {
+    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf(initialDate ?: LocalDate.now()) }
+
+    Column {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { showDialog = true }
+                .padding(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = selectedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-d")),
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = Icons.Filled.DateRange,
+                    contentDescription = "datePicker"
+                )
+            }
+        }
+
+        if (showDialog) {
+            val initYear = selectedDate.year
+            val initMonth = selectedDate.monthValue - 1
+            val initDayOfMonth = selectedDate.dayOfMonth
+
+            DatePickerDialog(
+                context,
+                { _, year, month, dayOfMonth ->
+                    val pickedDate = LocalDate.of(year, month + 1, dayOfMonth)
+                    selectedDate = pickedDate
+                    onDateChanged(pickedDate)
+                    showDialog = false
+                },
+                initYear,
+                initMonth,
+                initDayOfMonth
+            ).show()
+        }
+    }
+}
+
