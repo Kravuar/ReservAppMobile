@@ -2,14 +2,20 @@ package net.kravuar.reservapp.services.composables
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.rounded.AccountBox
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,8 +25,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import net.kravuar.reservapp.business.domain.Business
+import net.kravuar.reservapp.business.services.BusinessRetrievalService
 import net.kravuar.reservapp.services.domain.Service
 import net.kravuar.reservapp.services.services.ServiceRetrievalService
 import net.kravuar.reservapp.ui.components.RefreshButton
@@ -29,19 +39,28 @@ import net.kravuar.reservapp.ui.components.RefreshButton
 fun ServiceDetailScreen(
     serviceId: Long,
     serviceRetrievalService: ServiceRetrievalService,
+    businessRetrievalService: BusinessRetrievalService,
     onServiceBusinessSelected: (Long) -> Unit
 ) {
-    val serviceMutableState = remember { mutableStateOf<Service?>(null) }
-    var errorState: String? by remember { mutableStateOf(null) }
+    val serviceState = remember { mutableStateOf<Service?>(null) }
+    val businessState = remember { mutableStateOf<Business?>(null) }
+    var errorState by remember { mutableStateOf<String?>(null) }
     var isRefreshing by remember { mutableStateOf(false) }
 
     val fetchService: suspend () -> Unit = {
         try {
             isRefreshing = true
-            serviceMutableState.value = serviceRetrievalService.getServiceById(serviceId)
+            val service = serviceRetrievalService.getServiceById(serviceId)
+            serviceState.value = service
+            try {
+                val business = businessRetrievalService.getBusinessById(service.business.id)
+                businessState.value = business
+            } catch (e: Exception) {
+                errorState = "business.fetch.error"
+            }
             errorState = null
         } catch (e: Exception) {
-            errorState = "service.fetch-failed"
+            errorState = "service.fetch.error"
         } finally {
             isRefreshing = false
         }
@@ -51,7 +70,7 @@ fun ServiceDetailScreen(
         fetchService()
     }
 
-    if (errorState != null) {
+    if (errorState != null)
         AlertDialog(
             onDismissRequest = { errorState = null },
             title = { Text(text = "Error") },
@@ -64,53 +83,75 @@ fun ServiceDetailScreen(
                 }
             }
         )
-    } else {
-        val currentService = serviceMutableState.value
-        if (currentService != null) {
+    else {
+        val currentService = serviceState.value
+        val currentBusiness = businessState.value
+        if (currentService != null && currentBusiness != null) {
             Scaffold(
                 floatingActionButton = {
                     RefreshButton(onClick = fetchService, isRefreshing = isRefreshing)
                 }
             ) { padding ->
-                Row(
-                    modifier = Modifier.padding(padding)
-                ) {
+                Column(modifier = Modifier.padding(padding)) {
                     Card(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(end = 8.dp),
+                            .padding(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = currentService.name,
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                            Text(
-                                text = "Owner: ${currentService.business.ownerSub}"
-                            )
-                        }
-                    }
-                    Button(onClick = { onServiceBusinessSelected(currentService.business.id) }) {
-                        Card(
                             modifier = Modifier
-                                .width(200.dp)
-                                .height(200.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                .padding(16.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
-                                    text = "Business Info",
-                                    style = MaterialTheme.typography.bodyMedium
+                                    modifier = Modifier.weight(0.5f),
+                                    text = currentService.name,
+                                    style = MaterialTheme.typography.headlineSmall,
                                 )
+
+                                Spacer(modifier = Modifier.weight(0.2f))
+
+                                Column(
+                                    modifier = Modifier.weight(0.3f),
+                                    horizontalAlignment = Alignment.End
+                                ) {
+                                    Text(
+                                        text = currentBusiness.name,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                    IconButton(
+                                        onClick = { onServiceBusinessSelected(currentBusiness.id) },
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.AccountBox,
+                                            contentDescription = "To Business"
+                                        )
+                                    }
+                                }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(4.dp)),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                val descriptionText =
+                                    currentService.description ?: "Description not available"
+                                if (currentService.description == null)
+                                    Icon(
+                                        imageVector = Icons.Filled.Info,
+                                        contentDescription = "No Description",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
                                 Text(
-                                    text = "Owner: ${currentService.business.ownerSub}",
-                                    style = MaterialTheme.typography.bodySmall
+                                    text = descriptionText,
+                                    modifier = Modifier.padding(8.dp),
                                 )
                             }
                         }

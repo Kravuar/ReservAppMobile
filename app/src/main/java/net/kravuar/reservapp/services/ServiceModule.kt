@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import net.kravuar.reservapp.business.BusinessModuleConstants
 import net.kravuar.reservapp.services.composables.ServiceDetailScreen
 import net.kravuar.reservapp.services.composables.ServiceListScreen
 import net.kravuar.reservapp.services.services.ServiceRetrievalService
@@ -26,6 +27,7 @@ fun NavGraphBuilder.servicesModule(navController: NavHostController) {
         ServiceDetailScreen(
             serviceId = serviceId,
             serviceRetrievalService = ServicesModuleConstants.RETRIEVAL_SERVICE,
+            businessRetrievalService = BusinessModuleConstants.RETRIEVAL_SERVICE,
             onServiceBusinessSelected = { businessId ->
                 navController.navigate("businessDetail/$businessId")
             })
