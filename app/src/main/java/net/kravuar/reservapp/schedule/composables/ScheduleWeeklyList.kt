@@ -1,6 +1,5 @@
 package net.kravuar.reservapp.schedule.composables
 
-import android.util.Log
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text

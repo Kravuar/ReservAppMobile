@@ -6,5 +6,5 @@ data class ReservationSlot(
     val start: LocalTime,
     val end: LocalTime,
     val cost: Double,
-    val maxReservation: Int
+    val maxReservations: Int
 )

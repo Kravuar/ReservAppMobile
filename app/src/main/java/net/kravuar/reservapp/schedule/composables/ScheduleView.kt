@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import net.kravuar.reservapp.schedule.domain.ReservationSlot
 import net.kravuar.reservapp.staff.domain.Staff
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.util.SortedMap
 
@@ -56,13 +57,9 @@ fun ScheduleView(
                     }
                 }
             )
-            .fillMaxHeight()
-            .background(
-                color = MaterialTheme.colorScheme.secondary,
-                RoundedCornerShape(16.dp)
-            )
+            .fillMaxSize()
             .background(Color.Transparent),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(48.dp)
     ) {
         items(schedule.entries.toList()) { (date, reservations) ->
             DaySchedule(date = date, reservations = reservations, onReserve)
@@ -77,16 +74,19 @@ fun DaySchedule(
     onReserve: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         elevation = CardDefaults.cardElevation(4.dp),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(1.dp, Color.Gray)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = date.toString(),
+                text = "$date - ${DayOfWeek.from(date)}",
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -106,44 +106,52 @@ fun ReservationSlotView(staff: Staff, reservation: ReservationSlot, onReserve: (
         shape = RoundedCornerShape(8.dp),
         border = BorderStroke(1.dp, Color.Gray)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Staff: ${staff.sub}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Time: ${reservation.start} - ${reservation.end}",
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = "Cost: $${reservation.cost}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Max Reservation: ${reservation.maxReservation}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            Button(
-                onClick = { onReserve() },
-                modifier = Modifier.align(Alignment.CenterVertically)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.CheckCircle,
-                        contentDescription = "Reserve slot"
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "${reservation.start} - ${reservation.end}",
+                        style = MaterialTheme.typography.labelLarge
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Reserve", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = "Cost: $${reservation.cost}",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        enabled = reservation.maxReservations > 0,
+                        onClick = { onReserve() }
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.CheckCircle,
+                                contentDescription = "Reserve slot"
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "Reserve", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                    Text(
+                        text = "Reservations: ${reservation.maxReservations}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
+            Text(
+                text = "Staff: ${staff.sub}",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }

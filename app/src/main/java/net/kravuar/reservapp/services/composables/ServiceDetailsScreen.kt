@@ -1,7 +1,6 @@
 package net.kravuar.reservapp.services.composables
 
 import android.app.DatePickerDialog
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -215,20 +214,24 @@ fun ScheduleList(
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
             .fillMaxWidth()
     ) {
-        Text(
-            text = "Schedule",
-            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.secondary
-        )
+        Row (
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Schedule",
+                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            DatePicker(initialDate = dateState) {
+                dateState = it
+            }
+        }
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        DatePicker(initialDate = dateState) {
-            dateState = it
-        }
         ScheduleWeeklyList(
             date = dateState,
             serviceId = serviceId,
